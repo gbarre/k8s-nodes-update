@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Ensure kubectl is present
+if ! type kubectl >/dev/null 2>&1
+then
+  echo "'kubectl' must be present for running this script!"
+  echo "Get it here: https://kubernetes.io/fr/docs/tasks/tools/install-kubectl"
+  exit 1
+fi
+
+# Ensure terminator is present
+if ! type terminator >/dev/null 2>&1
+then
+  echo "'terminator' must be present for running this script!"
+  exit 2
+fi
+
+# Ensure context is good
+currentContext=$(kubectl config current-context)
+echo
+echo "Current context is: ${currentContext}."
+read -p 'Do you want to work in this context? (y/N): ' continueContext
+continueContext=${continueContext:-n}
+echo
+if [ "${continueContext,,}" != "y" ]
+then
+  echo "Here are the avalaibles context from your ~/.kube/config file:"
+  kubectl config get-contexts
+  echo
+  echo "You can change your context whith this command:"
+  echo "kubectl config use-context cluster-name"
+  exit 0
+fi
+
+# Get nodes names
+nodes=$(kubectl get nodes -o jsonpath="{.items[*].metadata.name}")
+echo "Here are the nodes for this cluster:"
+for node in $(echo ${nodes})
+do
+  echo "  - $node"
+done
+
+echo
+read -p 'Do you want to open a new terminator for all this servers? (y/N): ' continueTerminator
+continueTerminator=${continueTerminator:-n}
+echo
+if [ "${continueTerminator,,}" != "y" ]
+then
+  echo "OK, see you later!"
+  exit 0
+fi
+
+echo "Launch this command to open Terminator in all nodes:"
+echo
+pwd=$(pwd)
+echo "${pwd}/terminator-split/terminator-split -m ${nodes}"
