@@ -1,18 +1,13 @@
 #!/bin/bash
 
+me=$(basename "$0")
+
 # Ensure kubectl is present
 if ! type kubectl >/dev/null 2>&1
 then
   echo "'kubectl' must be present for running this script!"
   echo "Get it here: https://kubernetes.io/fr/docs/tasks/tools/install-kubectl"
   exit 1
-fi
-
-# Ensure terminator is present
-if ! type terminator >/dev/null 2>&1
-then
-  echo "'terminator' must be present for running this script!"
-  exit 2
 fi
 
 # Ensure context is good
@@ -31,7 +26,7 @@ then
   echo "You can change your context with this command:"
   echo "kubectl config use-context cluster-name"
   echo "You can also use this script and provide the wanteed context:"
-  echo "./upgrade <context>"
+  echo "./${me} <context>"
   exit 0
 fi
 
