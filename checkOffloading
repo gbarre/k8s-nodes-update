@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Ensure kubectl is present
+if ! type kubectl >/dev/null 2>&1
+then
+  echo "'kubectl' must be present for running this script!"
+  echo "Get it here: https://kubernetes.io/fr/docs/tasks/tools/install-kubectl"
+  exit 1
+fi
+
+# Ensure terminator is present
+if ! type terminator >/dev/null 2>&1
+then
+  echo "'terminator' must be present for running this script!"
+  exit 2
+fi
+
+# Ensure context is good
+currentContext=$(kubectl config current-context)
+context=${1:-$currentContext}
+echo
+echo "Current context is: ${context}."
+read -p 'Do you want to work in this context? (y/N): ' continueContext
+continueContext=${continueContext:-n}
+echo
+if [ "${continueContext,,}" != "y" ]
+then
+  echo "Here are the avalaibles context from your ~/.kube/config file:"
+  kubectl config get-contexts
+  echo
+  echo "You can change your context with this command:"
+  echo "kubectl config use-context cluster-name"
+  echo "You can also use this script and provide the wanteed context:"
+  echo "./upgrade <context>"
+  exit 0
+fi
+
+# Get nodes names
+nodes=$(kubectl get nodes -o jsonpath="{.items[*].metadata.name}" --context ${context})
+for node in $(echo ${nodes})
+do
+  echo -n "Check node $node :"
+  ssh "${node}" ethtool --show-offload flannel.1 | grep "tx-checksum-ip-generic"
+done
